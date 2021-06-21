@@ -4,6 +4,10 @@ FROM pcic/pdp-prod-base
 
 LABEL Maintainer="Rod Glover <rglover@uvic.ca>"
 
+# Get set to install packages
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update
+
 # Set the locale for PostgreSQL
 RUN apt-get -y install locales && \
     locale-gen en_CA.utf8
