@@ -1,8 +1,8 @@
-LABEL Maintainer="Rod Glover <rglover@uvic.ca>"
-
 # `pcic/pdp-prod-base` is built by the GitHub workflow `docker-publish`.
 # In the workflow, this image is built *after* that image.
 FROM pcic/pdp-prod-base
+
+LABEL Maintainer="Rod Glover <rglover@uvic.ca>"
 
 # Set the locale for PostgreSQL
 RUN apt-get -y install locales && \

@@ -1,7 +1,7 @@
-LABEL Maintainer="Rod Glover <rglover@uvic.ca>"
-
 # Base image must be 18.04. Some packages we want do not exist in 20.04.
 FROM ubuntu:18.04
+
+LABEL Maintainer="Rod Glover <rglover@uvic.ca>"
 
 # Get set to install packages
 ENV DEBIAN_FRONTEND=noninteractive
