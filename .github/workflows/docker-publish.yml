@@ -1,0 +1,37 @@
+name: Docker Publishing
+
+on:
+  push:
+    branches:
+      - '*'
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  publish:
+
+    # runs-on is not the same as base image. Upgrade to 20.04?
+    runs-on: ubuntu-18.04
+
+    # Build the two images *sequentially*.
+    # `pcic/pdp-test-base` is based on `pcic/pdp-prod-base`.
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Publish prod-base to Registry
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.pcicdevops_at_dockerhub_username }}
+          password: ${{ secrets.pcicdevops_at_dockerhub_password }}
+          dockerfile: prod-base.Dockerfile
+          repository: pcic/pdp-prod-base
+          tag_with_ref: true
+
+      - name: Publish test-base to Registry
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.pcicdevops_at_dockerhub_username }}
+          password: ${{ secrets.pcicdevops_at_dockerhub_password }}
+          dockerfile: test-base.Dockerfile
+          repository: pcic/pdp-test-base
+          tag_with_ref: true
