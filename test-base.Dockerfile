@@ -4,6 +4,8 @@ FROM pcic/pdp-prod-base
 
 LABEL Maintainer="Rod Glover <rglover@uvic.ca>"
 
+USER root
+
 # Get set to install packages
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
@@ -30,3 +32,4 @@ RUN apt-get install -yq \
         && \
     rm -rf /var/lib/apt/lists/*
 
+USER ${USERNAME}

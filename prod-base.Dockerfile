@@ -20,6 +20,26 @@ RUN apt-get install -yq \
         && \
     rm -rf /var/lib/apt/lists/*
 
+# Build arguments (scope limited to build). If you wish to use a different user name,
+# group name, or user home dir, override these in the build command.
+ARG USERNAME=dockeragent
+ARG GROUPNAME=${USERNAME}
+ARG USER_DIR=/opt/${USERNAME}
+
+# Environment variables (scope NOT limited to build). These and are set here so that
+# subsequent builds and containers have access to these build arguments.
+ENV USERNAME=${USERNAME}
+ENV GROUPNAME=${GROUPNAME}
+ENV USER_DIR=${USER_DIR}
+
+# Create non-privileged user.
+RUN groupadd -r ${GROUPNAME} && \
+    useradd -r -d ${USER_DIR} -g ${GROUPNAME} ${USERNAME} && \
+    mkdir -p ${USER_DIR} && \
+    chown ${USERNAME}:${GROUPNAME} ${USER_DIR}
+
+USER ${USERNAME}
+
 # Insall Python build packages
 RUN pip install --upgrade pip setuptools wheel
 
