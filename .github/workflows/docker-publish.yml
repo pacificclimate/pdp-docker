@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-18.04
 
     # Build the two images *sequentially*.
-    # `pcic/pdp-test-base` is based on `pcic/pdp-prod-base`.
+    # `pcic/pdp-base-with-pg9.3` is based on `pcic/pdp-base-minimal`.
     steps:
       - uses: actions/checkout@master
 
@@ -24,7 +24,7 @@ jobs:
           username: ${{ secrets.pcicdevops_at_dockerhub_username }}
           password: ${{ secrets.pcicdevops_at_dockerhub_password }}
           dockerfile: prod-base.Dockerfile
-          repository: pcic/pdp-prod-base
+          repository: pcic/pdp-base-minimal
           tag_with_ref: true
 
       - name: Publish test-base to Registry
@@ -33,5 +33,5 @@ jobs:
           username: ${{ secrets.pcicdevops_at_dockerhub_username }}
           password: ${{ secrets.pcicdevops_at_dockerhub_password }}
           dockerfile: test-base.Dockerfile
-          repository: pcic/pdp-test-base
+          repository: pcic/pdp-base-with-pg9.3
           tag_with_ref: true
