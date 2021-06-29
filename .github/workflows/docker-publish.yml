@@ -23,7 +23,7 @@ jobs:
         with:
           username: ${{ secrets.pcicdevops_at_dockerhub_username }}
           password: ${{ secrets.pcicdevops_at_dockerhub_password }}
-          dockerfile: prod-base.Dockerfile
+          dockerfile: base-minimal.Dockerfile
           repository: pcic/pdp-base-minimal
           tag_with_ref: true
 
@@ -32,6 +32,6 @@ jobs:
         with:
           username: ${{ secrets.pcicdevops_at_dockerhub_username }}
           password: ${{ secrets.pcicdevops_at_dockerhub_password }}
-          dockerfile: test-base.Dockerfile
+          dockerfile: base-with-pg9.3.Dockerfile
           repository: pcic/pdp-base-with-pg9.3
           tag_with_ref: true
