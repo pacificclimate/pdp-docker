@@ -38,8 +38,6 @@ RUN groupadd -r ${GROUPNAME} && \
     mkdir -p ${USER_DIR} && \
     chown ${USERNAME}:${GROUPNAME} ${USER_DIR}
 
-USER ${USERNAME}
-
 # Insall Python build packages
 RUN pip install --upgrade pip setuptools wheel
 
@@ -51,3 +49,5 @@ ENV C_INCLUDE_PATH /usr/include/gdal
 # Other project dependencies will be installed by the images based on this one.
 RUN pip install --no-binary :all: numpy Cython==0.22 gdal==2.2
 RUN pip install --no-binary :all: h5py
+
+USER ${USERNAME}
