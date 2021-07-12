@@ -22,6 +22,7 @@ RUN apt-get install -yq \
 
 # Build arguments (scope limited to build). If you wish to use a different user name,
 # group name, or user home dir, override these in the build command or change them here.
+# If you specify build arg USERNAME=root, then the user is root.
 ARG USERNAME=dockeragent
 ARG GROUPNAME=${USERNAME}
 ARG USER_DIR=/opt/${USERNAME}
@@ -32,13 +33,17 @@ ENV USERNAME=${USERNAME}
 ENV GROUPNAME=${GROUPNAME}
 ENV USER_DIR=${USER_DIR}
 
-# Create non-privileged user, group, and its directory.
-RUN groupadd -r ${GROUPNAME} && \
-    useradd -r -d ${USER_DIR} -g ${GROUPNAME} ${USERNAME} && \
-    mkdir -p ${USER_DIR} && \
-    chown ${USERNAME}:${GROUPNAME} ${USER_DIR}
+# Create non-privileged user, group, and its directory. This is only done if USERNAME is not root.
+RUN if [ "$USERNAME" != "root" ]; \
+    then \
+        echo "Creating non-root user"; \
+        groupadd -r ${GROUPNAME}; \
+        useradd -r -d ${USER_DIR} -g ${GROUPNAME} ${USERNAME}; \
+        mkdir -p ${USER_DIR}; \
+        chown ${USERNAME}:${GROUPNAME} ${USER_DIR}; \
+    fi
 
-# Switch to non-priv user. Important to set WORKDIR thus.
+# Set working directory and user
 WORKDIR ${USER_DIR}
 USER ${USERNAME}
 
