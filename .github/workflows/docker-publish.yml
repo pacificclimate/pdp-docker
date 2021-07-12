@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - name: Publish prod-base to Registry
+      - name: Publish pdp-base-minimal to Registry
         uses: docker/build-push-action@v1
         with:
           username: ${{ secrets.pcicdevops_at_dockerhub_username }}
@@ -27,11 +27,20 @@ jobs:
           repository: pcic/pdp-base-minimal
           tag_with_ref: true
 
-      - name: Publish test-base to Registry
+      - name: Publish pdp-base-with-pg9.3 to Registry
         uses: docker/build-push-action@v1
         with:
           username: ${{ secrets.pcicdevops_at_dockerhub_username }}
           password: ${{ secrets.pcicdevops_at_dockerhub_password }}
           dockerfile: base-with-pg9.3.Dockerfile
           repository: pcic/pdp-base-with-pg9.3
+          tag_with_ref: true
+
+      - name: Publish pdp-UNSAFE-base-minimal to Registry
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.pcicdevops_at_dockerhub_username }}
+          password: ${{ secrets.pcicdevops_at_dockerhub_password }}
+          dockerfile: UNSAFE-base-minimal.Dockerfile
+          repository: pcic/pdp-UNSAFE-base-minimal
           tag_with_ref: true
