@@ -1,3 +1,8 @@
+# This is the base image for all PDP Docker images. It supports both
+# "safe" and "unsafe" users:
+#   - Safe (non-root) user is used by default; dockeragent:dockeragent
+#   - Unsafe (root) user is used only when USERNAME is overridden with 'root'
+
 # Base image must be 18.04. Some packages we want do not exist in 20.04.
 FROM ubuntu:18.04
 

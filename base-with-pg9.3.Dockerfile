@@ -1,6 +1,7 @@
-# `pcic/pdp-prod-base` is built by the GitHub workflow `docker-publish`.
+# `pcic/pdp-base-minimal` is built by the GitHub workflow `docker-publish`.
 # In the workflow, this image is built *after* that image.
-FROM pcic/pdp-prod-base
+ARG BASE=pcic/pdp-base-minimal
+FROM ${BASE}
 
 LABEL Maintainer="Rod Glover <rglover@uvic.ca>"
 

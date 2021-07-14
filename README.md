@@ -22,10 +22,36 @@ complete environments for the various purposes. See [Usage](#usage) below.
 
 ## Images
 
-| Image name | Dockerfile | Base image |
-|---|---|---|
-| pcic/pdp-base-minimal | base-mimal.Dockerfile | ubuntu:18.04 |
-| pcic/pdp-base-with-pg9.3 | base-with-pg9.3.Dockerfile | pcic/pdp-base-minimal |
+| Image name | Dockerfile | Base image | Notes (see below) |
+|---|---|---|---|
+| pcic/pdp-base-minimal | base-minimal.Dockerfile | ubuntu:18.04 | Safe |
+| pcic/pdp-base-minimal-unsafe | base-minimal.Dockerfile | ubuntu:18.04 | UNSAFE |
+| pcic/pdp-base-with-pg9.3 | base-with-pg9.3.Dockerfile | pcic/pdp-base-minimal | Safe |
+| pcic/pdp-base-with-pg9.3-unsafe | base-with-pg9.3.Dockerfile | pcic/pdp-base-minimal-unsafe | UNSAFE |
+
+Notes:
+
+- Safe: This image sets a non-root user and is safe to run on
+  hosts with access to sensitive infrastructure.
+- UNSAFE: This image uses the root user throughout, does not set a non-root
+  user and is **not safe to run on hosts with access to sensitive 
+  infrastructure**. Do not run this image on a workstation, 
+  on a self-hosted GitHub runner, or on a server behind the PCIC firewall.
+  
+### Build args and environment variables
+
+To support a (typically) non-root user, the following build args are defined
+in `base-minimal.Dockerfile`:
+
+- `USERNAME`: Name of user. Default: `dockeragent`.
+- `GROUPNAME`: Name of user's group. Default: `<USERNAME>`.
+- `USER_DIR`: Home directory of user. Default: `/opt/<USERNAME>`.
+
+These build args can be overridden to define a different user, including as
+`root`, which yields an UNSAFE (see above) image.
+
+These build args are passed into environment variables of the same names
+for convenient use by subsequent images or containers.
 
 ### `pcic/pdp-base-minimal`
 
@@ -35,11 +61,10 @@ complete environments for the various purposes. See [Usage](#usage) below.
 - Installs a small set of fundamental Python packages needed by PDP.
   (Remaining packages must be installed by the image or container 
   responsible for building a full PDP environment.)
-- Defines a non-root user and group (default: `dockeragent:dockeragent`) and 
-  switches to it to install the Python packages. Publishes user name and group 
-  name in environment variables `USERNAME` and `GROUPNAME` to make them
-  available to subsequent builds and containers.
-- For security, the non-root user remains the active user at the end of 
+- Defines a non-root user and group and switches to it to install the 
+  Python packages. Built with `USERNAME=dockeragent`.
+- Safe (see above): 
+  For security, the non-root user remains the active user at the end of 
   image build. If higher privilege is needed while building an image based
   on this one, the image should do the following:
   
@@ -53,15 +78,32 @@ complete environments for the various purposes. See [Usage](#usage) below.
   USER ${USERNAME}
   ```
   
+### `pcic/pdp-base-minimal-unsafe`
+
+Like `pcic/pdp-base-minimal`, except:
+
+- UNSAFE (see above): Does NOT define a non-root user and group; instead
+  is built with `USERNAME=root`. 
+  **Do not run on hosts with access to sensitive infrastructure.** 
+  
 ### `pcic/pdp-base-with-pg9.3`
 
 - Base image: `pcic/pdp-base-minimal`.
 - Installs Ubuntu packages necessary to support PostgreSQL 9.3. (These packages
   require using a special legacy library available only for Ubuntu 18.04 or
   earlier.)
-- For security, the non-root user remains the active user at the end of 
+- Safe (see above): 
+  For security, the non-root user remains the active user at the end of 
   image build. (For details, see section `pcic/pdp-base-minimal` above.)
 
+### `pcic/pdp-base-with-pg9.3-unsafe`
+
+Like `pcic/pdp-base-with-pg9.3`, except:
+
+- Base image: `pcic/pdp-base-minimal-unsafe`.
+- UNSAFE (see above):  
+  **Do not run on hosts with access to sensitive infrastructure.** 
+  
 ## Usage
 
 ### Production
