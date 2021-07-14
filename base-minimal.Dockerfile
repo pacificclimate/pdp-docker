@@ -64,3 +64,5 @@ ENV PIP_INDEX_URL https://pypi.pacificclimate.org/simple
 # Other project dependencies will be installed by the images based on this one.
 RUN pip install --no-binary :all: numpy Cython==0.22 gdal==2.2
 RUN pip install --no-binary :all: h5py
+
+ENV PATH=${USER_DIR}/.local/bin:${PATH}
