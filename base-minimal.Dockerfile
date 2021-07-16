@@ -61,8 +61,8 @@ ENV C_INCLUDE_PATH /usr/include/gdal
 ENV PIP_INDEX_URL https://pypi.pacificclimate.org/simple
 
 # Install primary dependencies (separate RUN statement for GDAL is required).
-# Other project dependencies will be installed by the images based on this one.
-RUN pip install --no-binary :all: numpy Cython==0.22 gdal==2.2
-RUN pip install --no-binary :all: h5py
+# Other project dependencies will be installed by images derived from this one.
+RUN pip install --no-binary :all: numpy==1.16.6 Cython==0.22 gdal==2.2
+RUN pip install --no-binary :all: h5py==2.7.1
 
 ENV PATH=${USER_DIR}/.local/bin:${PATH}
