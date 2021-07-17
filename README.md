@@ -191,7 +191,7 @@ procedures.
        - does some magic to set up for the mapping between the Docker
         namespace and your own;
        - prints the username and groupname.
-    1. Modify your local `/etc/docker/daemon.json` to include
+    1. Create or modify your local `/etc/docker/daemon.json` to include
     
         ```
         {
