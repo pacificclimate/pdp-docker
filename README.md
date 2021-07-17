@@ -26,8 +26,8 @@ complete environments for the various purposes. See [Usage](#usage) below.
 |---|---|---|---|
 | pcic/pdp-base-minimal | base-minimal.Dockerfile | ubuntu:18.04 | Safe |
 | pcic/pdp-base-minimal-unsafe | base-minimal.Dockerfile | ubuntu:18.04 | UNSAFE |
-| pcic/pdp-base-with-pg9.3 | base-with-pg9.3.Dockerfile | pcic/pdp-base-minimal | Safe |
-| pcic/pdp-base-with-pg9.3-unsafe | base-with-pg9.3.Dockerfile | pcic/pdp-base-minimal-unsafe | UNSAFE |
+| pcic/pdp-base-with-pg9.5 | base-with-pg9.5.Dockerfile | pcic/pdp-base-minimal | Safe |
+| pcic/pdp-base-with-pg9.5-unsafe | base-with-pg9.5.Dockerfile | pcic/pdp-base-minimal-unsafe | UNSAFE |
 
 Notes:
 
@@ -86,19 +86,19 @@ Like `pcic/pdp-base-minimal`, except:
   is built with `USERNAME=root`. 
   **Do not run on hosts with access to sensitive infrastructure.** 
   
-### `pcic/pdp-base-with-pg9.3`
+### `pcic/pdp-base-with-pg9.5`
 
 - Base image: `pcic/pdp-base-minimal`.
-- Installs Ubuntu packages necessary to support PostgreSQL 9.3. (These packages
+- Installs Ubuntu packages necessary to support PostgreSQL 9.5. (These packages
   require using a special legacy library available only for Ubuntu 18.04 or
   earlier.)
 - Safe (see above): 
   For security, the non-root user remains the active user at the end of 
   image build. (For details, see section `pcic/pdp-base-minimal` above.)
 
-### `pcic/pdp-base-with-pg9.3-unsafe`
+### `pcic/pdp-base-with-pg9.5-unsafe`
 
-Like `pcic/pdp-base-with-pg9.3`, except:
+Like `pcic/pdp-base-with-pg9.5`, except:
 
 - Base image: `pcic/pdp-base-minimal-unsafe`.
 - UNSAFE (see above):  
@@ -118,7 +118,7 @@ build of the PDP.
 - `pdp`: At present, repo `pdp` does not need a PostgreSQL server to run its 
   tests. It therefore runs the simpler image `pcic/pdp-base-minimal`.
 - `pdp_util`: At present, repo `pdp_util` requires a PostgreSQL server to run 
-  its tests. It therefore runs the image `pcic/pdp-base-with-pg9.3`.
+  its tests. It therefore runs the image `pcic/pdp-base-with-pg9.5`.
   
 Both test containers install the remaining Python dependencies and run the 
 respective tests.
