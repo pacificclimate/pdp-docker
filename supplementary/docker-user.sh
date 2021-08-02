@@ -1,8 +1,21 @@
 #!/bin/bash
 # This script creates a user on the host that a Docker container maps to with user
 # namespace remapping enabled.
+#
+# Options
+#   
+#   -g host_groupname : The name of the host group to which the newly created user
+#     is added.
+#
+#   -n host_userns_username : The name of the host user specified for the Docker
+#     daemon param userns-remap (specified in /etc/docker/daemon.json). 
+#
+#   -i container_gid : The id of the container user of the container user.
+#
+#   -p host_username_prefix : A prefix with which the host user created by this script 
+#     is formed. (The host user name is "${host_username_prefix}${container_gid}".)
 
-host_userns_username=dockeragent
+host_userns_username=dockremap
 container_uid=1000
 host_username_prefix="$host_userns_username"
 host_groupname="${host_userns_username}${container_uid}"

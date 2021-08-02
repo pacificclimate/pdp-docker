@@ -174,43 +174,24 @@ This section outlines the procedure used to set up and use a development image.
 Individual development images in each repo may have slightly different
 procedures.
 
-1. (Once per host environment) Prepare the host environment to map the non-root 
-   user in the development image to a host user with the right privileges. 
-   This is only necessary to run a development image with write privileges
-   to the local filesystem.
-  
-   For details, see section 
+1. (Once per host environment) Prepare the host environment for Docker user
+   namespace remapping. 
+   This is only necessary if you want to run a development image with 
+   write privileges to a mounted filesystem.
+   
+   1. Create the host group and user. Follow the [Instructions](#instructions) in section 
   [Mapping a user inside a Docker image onto a host user](#mapping-a-user-inside-a-docker-image-onto-a-host-user). 
   
-    1. Run the script `./supplementary/docker-userns-remap-host.sh`.
-       It:
-       - creates a user and group on your local machine (the host
-        environment) that the Docker non-root user will map onto;
-       - adds the user to your own primary group (to give it access to
-        the project files);
-       - does some magic to set up for the mapping between the Docker
-        namespace and your own;
-       - prints the username and groupname.
-    1. Create or modify your local `/etc/docker/daemon.json` to include
-    
-        ```
-        {
-          "userns-remap": "<username>:<groupname>"
-        }
-        ```
-       where `<username>` and `<groupname>` are taken from the output of the
-       script.
-    1. Restart Docker:
-    
-        ```
-        sudo systemctl restart docker
-        ```
-       
-        and verify that it restarted:
-        
-        ```
-        sudo systemctl status docker
-        ```
+   1. Give the host group or user appropriate privileges on the directories
+   you plan to mount. It is probably easiest to use ACL for this. For
+   example:
+   
+   ```
+   setfacl -m "g:dockremap1000:rwx" <directory>
+   ```
+   
+   gives any member of the group `dockremap1000` read, write, and execute
+   privileges on the specified directory.
 
 1. (Initially; infrequently thereafter) Pull or locally build the Docker 
    image that creates the development environment.
@@ -237,57 +218,211 @@ There are at least two solutions to this:
 
 - Set the Docker user's numeric user id to the same value as a user on the
   host system with suitable privileges. This is simple, but it is not very 
-  flexible or portable. The image must be rebuilt for different user id's, and 
-  the same image cannot be reused in environments where the host user id's 
-  differ.
-- Use the Docker `userns-remap` feature. This uses some Linux magic to
-  "remap" the image/container user id to a user id on the host. It is
+  flexible or portable. The image must be rebuilt for different user id's, 
+  and the same image cannot be reused in environments where the host user 
+  id's differ.
+  
+- Use the Docker user namespace remapping feature. It is
   considerably more complicated, but it is portable and reusable. Changes
   to accommodate different host environments are done *on the host* and not
   in the image.
   
-We use the second solution (`userns-remap`) for `local-pytest`. Such solutions
+We use user namespace remapping. Solutions using it
 are described in the following articles:
 
+- [Isolate containers with a user namespace](https://docs.docker.com/engine/security/userns-remap/).
+  The Docker documentation is somewhat difficult to understand and apply
+  on its own.
 - [Align user IDs inside and outside Docker with subuser mapping](https://linuxnatives.net/2019/align-user-ids-inside-and-outside-docker-with-subuser-mapping). The scenario/motivation is nearly
   identical to our own here, but the explanation and instructions are 
   cursory.
 - [Docker userns-remap and system users on Linux](https://echorand.me/posts/docker-user-namespacing-remap-system-user/). The scenario/motivation is a little different, but
   the explanation is much clearer and more detailed.
-- [Isolate containers with a user namespace](https://docs.docker.com/engine/security/userns-remap/).
-  The Docker documentation is somewhat difficult to understand and apply
-  on its own.
 
-Based on these articles, I devised the following solution. I believe it to
-be fairly general and flexible.
+### Outline
 
-1. Select user name and group name for mapping. Suggest `dockeragent`.
-1. In the Docker image(s):
-    1. Create a group and user with the selected names.
-    1. At the end of the image, run `USE <username>`. Any container
-       run from this image cannot escalate privilege beyond what is given
-       to the host user it maps to.
-1. On the host machine:
-    1. Create docker user group (see script).
-    1. Create docker user (see script).
-    1. Add docker user to the group on the local machine with privileges
-     for the files to be modified. This is likely your login user's primary group.
-    1. Add `subuid` and `subgid` entries for docker user. This is how
-     namespace remapping is done on the host (see script). This is the "magic" part.
-    1. Modify `/etc/docker/daemon.json` to include
-       ```
-        {
-          "userns-remap": "<username>"
-        }
-       ```
-    1. Restart Docker:
-       ```
-       sudo systemctl restart docker
-       sudo systemctl status docker
-       ```  
+1. The user configures Docker to use user namespace remapping. This is
+   done by specifying the Docker daemon parameter `userns-remap` and
+   restarting Docker.
+   
+   The value of parameter `userns-remap` is the name of a host 
+   user (and optionally, its group). This user and group is arbitrary;
+   it is an implementation detail of Docker user namespace remapping,
+   but it must be an existing user.
+   
+   Alternatively, use the value `default`, 
+   which Docker translates to `dockremap:dockremap`, and automatically
+   creates the user and group if necessary, and creates corresponding
+   entries in `/etc/subuid` and `/etc/subgid`. Otherwise, the 
+   user must manually create the specified user and group and entries
+   in `/etc/subuid` and `/etc/subgid`.
+   
+   We prefer `default` for simplicity.
 
-The first 4 steps in this procedure can easily be encapsulated in a script.
-See `./supplementary/docker-userns-remap-host.sh`.
+1. When Docker user namespace remapping is active, it maps _container_ 
+   users and groups onto _host_ users and groups according to the user and 
+   group numerical id's together with a particular entry in `/etc/subuid` 
+   and `/etc/subgid` respectively.
+   
+   Specifically, Docker maps container user (group) with numerical id `id`
+   onto host user (group) with numerical id `start + id`, where `start` is
+   the starting user (group) subsidiary id specified in `/etc/subuid` 
+   (`/etc/subgid`) _for the user (group) specified by the Docker parameter_
+   `userns-remap`.
+   
+   For example, if 
+
+   - `userns-remap` specifies `dockremap:dockremap`
+   - `/etc/subuid` contains a line `dockremap:200000:65536`
+   
+   then
+   
+   - user 0 (root) in the container is mapped to host user 200000
+   - user 100 in the container is mapped to host user 200100
+   - etc. 
+   
+   (Similarly for group and `/etc/subgid`.)
+   
+1. The host user onto which a container user is mapped will in general
+   have no privileges for anything. This is the purpose of Docker user
+   namespace remapping: To ensure that all users, including the root user,
+   inside a Docker container map onto host users with no privileges by 
+   default.
+   
+1. However, the host _can_ grant privileges to such a mapped user (e.g., 
+   write access to certain directories) if it chooses.
+   
+   To make it easier to manage the privileges granted to a host user
+   mapped from a container user, and to identify files created by it,
+   etc., it is best to create host usernames and group names for the
+   (so far) purely numerical user uid and group gid's that are mapped.
+   
+Notes:
+
+1. The host user and group specified in the Docker parameter 
+  `userns-remap` are used _only_ to select the appropriate information 
+  from `/etc/subuid` and `/etc/subgid`. This user and group are
+  not directly related to the mapped host users and groups. In 
+  particular, the privileges of this user and group do **not**
+  affect the privileges of mapped users and groups.
+   
+1. Only the numerical ids of users and groups inside the container
+  are relevant to the mapping. Their names do not participate in the
+  mapping, and so can be chosen to be anything convenient.
+
+### Instructions
+
+1. Decide what value to use for the Docker parameter `userns-remap`.
+   
+   This will either be a user:group that you create on the host, 
+   or the value `default`, which means the user:group
+   `dockremap:dockremap` and automatically ensures that they exist. 
+   
+   For simplicity, prefer `default`.
+   
+1. If you chose a value for `userns-remap` other than `default`:
+
+    1. Create the user and group on the host.
+    1. Add entries to `/etc/subuid` and `/etc/subgid` for the user and
+       group. For details on this, see Docker documentation
+       [Isolate containers with a user namespace](https://docs.docker.com/engine/security/userns-remap/), 
+       section Prerequisites.
+   
+1. Create or edit `/etc/docker/daemon.json` to include the parameter 
+   `userns-remap` using the value you selected. For example:
+   ```
+   {
+     "userns-remap": "default"
+   }
+   ``` 
+
+1. Restart Docker:
+   ```
+   sudo systemctl restart docker
+   ```
+   and ensure it is running again:  
+   ```  
+   sudo systemctl status docker
+   ```  
+
+1. In the Docker image(s), i.e., `Dockerfile`(s) you define:
+
+   1. Create a container group and user. Explicitly assign values for
+      numerical user id and group id. Unless you have a good reason to
+      do otherwise, user the value 1000 for each. Avoid reserved user
+      and group id's -- typically values less than 100.
+      
+      ***DO NOT*** give the user high privileges, including `sudo` 
+      privilege. This user should be an ordinary, unprivileged user.
+      
+      The _names_ of the container group and user are arbitrary and visible
+      only inside the container. You may name them anything, but it is
+      common to use the Docker `userns-remap` names; for example, 
+      `dockremap`.
+       
+   1. At the end of the image, run `USE <username>`. This ensures that
+      no container run from this image -- regardless of whether Docker
+      user namespace remapping is enabled -- can escalate privilege to root.
+      (*You* might always be careful to use user namespace remapping, but
+      others may not. `USE <username>` prevents security problems.)
+   
+1. Create a host user and group to which the container user and group
+   will be mapped.
+   
+   This repository contains scripts that do most of the work of creating
+   such users and groups on the host. To use them:
+   
+   1. Choose a prefix for the name of the host group to be created.
+      It can be any valid name, but for simplicity it is probably best
+      to use the same name as specified in `userns-remap`; for example 
+      `dockremap`.
+      
+   1. Run 
+      
+      ```
+      ./supplementary/docker-group.sh -p prefix -i container_gid -n host_userns_groupname
+      ```
+      
+      where 
+      
+      - `prefix` is the prefix you chose,
+      - `container_gid` is the numerical id of the group in the image 
+        (container), and
+      - `host_userns_groupname` is the name of the group specified in 
+        `userns-remap`
+      
+      You may omit the `-i` and `-n` options if they take the default
+      values `1000` and `dockremap` respectively.
+      
+      This creates a named group on your host machine corresponding to 
+      (i.e., mapped from) the group used in the container(s).
+      
+   1. Choose a prefix for the name of the host user to be created.
+      It can be any valid name, but for simplicity it is probably best
+      to use the same name as specified in `userns-remap`; for example 
+      `dockremap`.
+   
+   1. Run 
+      
+      ```
+      ./supplementary/docker-user.sh -p prefix -i container_uid -n host_userns_username -g host_groupname 
+      ```
+      
+      where 
+      
+      - `host_groupname` is the name of the group you created in the
+        previous step,
+      - `prefix` is the prefix you chose,
+      - `container_uid` is the numerical id of the user in the image 
+        (container), and
+      - `host_userns_username` is the name of the user specified in `userns-remap`
+      
+      You may omit the `-i`, `-n` and `-g` options if they take the default
+      values `1000`, `dockremap`, and `dockremap1000` respectively.
+      
+      This creates a named user on your host machine corresponding to 
+      (i.e., mapped from) the user used in the container(s).
+      
 
 
 
