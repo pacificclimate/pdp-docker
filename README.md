@@ -43,12 +43,14 @@ Notes:
 To support a (typically) non-root user, the following build args are defined
 in `base-minimal.Dockerfile`:
 
-- `USERNAME`: Name of user. Default: `dockeragent`.
+- `USERNAME`: Name of user. Default: `dockremap`.
+- `UID`: Numerical id of user. Default: `1000`.
 - `GROUPNAME`: Name of user's group. Default: `<USERNAME>`.
+- `GID`: Numerical id of group. Default: `1000`.
 - `USER_DIR`: Home directory of user. Default: `/opt/<USERNAME>`.
 
 These build args can be overridden to define a different user, including as
-`root`, which yields an UNSAFE (see above) image.
+`root`, which yields an UNSAFE image (see above).
 
 These build args are passed into environment variables of the same names
 for convenient use by subsequent images or containers.
@@ -62,7 +64,7 @@ for convenient use by subsequent images or containers.
   (Remaining packages must be installed by the image or container 
   responsible for building a full PDP environment.)
 - Defines a non-root user and group and switches to it to install the 
-  Python packages. Built with `USERNAME=dockeragent`.
+  Python packages. Built with `USERNAME=dockremap`.
 - Safe (see above): 
   For security, the non-root user remains the active user at the end of 
   image build. If higher privilege is needed while building an image based
