@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-18.04
 
     # Build the images *sequentially*.
-    # `pcic/pdp-base-with-pg9.3` is based on `pcic/pdp-base-minimal`.
+    # `pcic/pdp-base-with-pg9.5` is based on `pcic/pdp-base-minimal`.
     steps:
       - uses: actions/checkout@master
 
@@ -37,21 +37,21 @@ jobs:
           repository: pcic/pdp-base-minimal-unsafe
           tag_with_ref: true
 
-      - name: Publish pdp-base-with-pg9.3 to Registry
+      - name: Publish pdp-base-with-pg9.5 to Registry
         uses: docker/build-push-action@v1
         with:
           username: ${{ secrets.pcicdevops_at_dockerhub_username }}
           password: ${{ secrets.pcicdevops_at_dockerhub_password }}
-          dockerfile: base-with-pg9.3.Dockerfile
-          repository: pcic/pdp-base-with-pg9.3
+          dockerfile: base-with-pg9.5.Dockerfile
+          repository: pcic/pdp-base-with-pg9.5
           tag_with_ref: true
 
-      - name: Publish pdp-base-with-pg9.3-unsafe to Registry
+      - name: Publish pdp-base-with-pg9.5-unsafe to Registry
         uses: docker/build-push-action@v1
         with:
           username: ${{ secrets.pcicdevops_at_dockerhub_username }}
           password: ${{ secrets.pcicdevops_at_dockerhub_password }}
-          dockerfile: base-with-pg9.3.Dockerfile
+          dockerfile: base-with-pg9.5.Dockerfile
           build_args: BASE=pcic/pdp-base-minimal-unsafe
-          repository: pcic/pdp-base-with-pg9.3-unsafe
+          repository: pcic/pdp-base-with-pg9.5-unsafe
           tag_with_ref: true
