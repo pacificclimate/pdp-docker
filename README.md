@@ -125,7 +125,7 @@ respective tests.
 
 ### Running tests and PDP application on workstation
 
-It is difficult if not impossible to install on an up-to-date workstation a 
+It is difficult on an up-to-date workstation to install a 
 suitable environment for running the PDP's tests or the application.
 
 Instead, we can use a Docker container. The images in this repo provide 
@@ -140,7 +140,7 @@ containers are defined and built in their respective repos.
 1. The development image is built with all the contents necessary to install 
    and run the package and its tests. 
 
-1. Since we want to run our locally modified code, we can't install the 
+1. Since we want to run locally modified code, we can't install the 
    codebase from a repo (as we do for building a production image or running 
    CI tests). Instead we mount the local workstation codebase to the 
    container and install from that when the container is started.
@@ -241,7 +241,10 @@ are described in the following articles:
 
 ### Outline
 
-1. The user configures Docker to use user namespace remapping. This is
+For detailed instructions, see the next section. This section explains
+the why and what of the procedure.
+
+1. Configure Docker to use user namespace remapping. This is
    done by specifying the Docker daemon parameter `userns-remap` and
    restarting Docker.
    
@@ -423,7 +426,19 @@ Notes:
       This creates a named user on your host machine corresponding to 
       (i.e., mapped from) the user used in the container(s).
       
+### Bonus information
 
+To delete a user:
+
+```
+sudo userdel USERNAME
+```
+
+To delete a group:
+
+```
+sudo groupdel GROUPNAME
+```
 
 
 

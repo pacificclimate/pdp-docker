@@ -38,5 +38,5 @@ host_gid=$(( host_gid_base + container_gid ))
 
 host_groupname="${host_groupname_prefix}${container_gid}"
 
-#sudo groupadd -g "$host_gid" "$host_groupname"
+sudo groupadd -r -g "$host_gid" "$host_groupname"
 echo "added host group $host_gid($host_groupname)"

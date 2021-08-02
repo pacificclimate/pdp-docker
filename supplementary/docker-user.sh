@@ -47,5 +47,6 @@ host_uid=$(( host_uid_base + container_uid ))
 
 host_username="${host_username_prefix}${container_uid}"
 
-#sudo useradd -g "$host_groupname" -u "$host_uid" "$host_username"
+sudo useradd -r -g "$host_groupname" -u "$host_uid" "$host_username"
 echo "added host user $host_uid($host_username) to group $host_groupname"
+id "$host_username"
