@@ -38,7 +38,7 @@ if [ ! $(getent group $host_groupname) ]; then
 fi
 
 host_uid_base=$(egrep "^$host_userns_username" /etc/subuid | cut -d ':' -f 2)
-if [ -z "$hostuid_base" ]; then
+if [ -z "$host_uid_base" ]; then
   echo "User '$host_userns_username' (option -n) not found in /etc/subuid."
   exit 1
 fi
